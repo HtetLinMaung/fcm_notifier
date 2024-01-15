@@ -26,7 +26,7 @@ export const addFcmSchedule = async (req: Request, res: Response) => {
     );
     log(`Generated schedule key: ${schedulesKey}`);
 
-    //     const year: number = timeInTimeZone.year();
+    // const year: number = timeInTimeZone.year();
     // const month: number = timeInTimeZone.month() + 1; // Month is 0-indexed
     // const day: number = timeInTimeZone.date();
     // const hour: number = timeInTimeZone.hour();
@@ -71,26 +71,28 @@ export const addFcmSchedule = async (req: Request, res: Response) => {
 
 export const cancelFcmSchedule = async (req: Request, res: Response) => {
   try {
-    const { key } = req.body;
-    log(`Received cancel schedule request for key: ${key}`);
-    const scheduledJob = await ScheduledJob.findOne({ key });
+    const { id } = req.body;
+    log(`Received cancel schedule request for id: ${id}`);
+    const scheduledJob = await ScheduledJob.findOne({ _id: id });
     if (!scheduledJob) {
-      log(`Scheduled job not found for key: ${key}`, "warn");
+      log(`Scheduled job not found for id: ${id}`, "warn");
       return res.status(404).json({
         code: 404,
         message: "Scheduled job not found!",
       });
     }
     const timezone = scheduledJob.timezone;
-    await ScheduledJob.deleteOne({ key });
-    delete schedules[key];
+    await ScheduledJob.deleteOne({ _id: id });
+    schedules[scheduledJob.key] = schedules[scheduledJob.key].filter(
+      (scheduleJob) => scheduleJob._id != id
+    );
 
     const count = await ScheduledJob.countDocuments({ timezone });
     if (count == 0) {
       globalEmitter.emit("remove-timezone", timezone);
       log(`Timezone ${timezone} removed due to no scheduled jobs.`);
     }
-    log(`Scheduled job with key ${key} cancelled successfully.`);
+    log(`Scheduled job with id ${id} cancelled successfully.`);
     res.json({
       code: 200,
       message: "Cancel scheduled job successfully.",
