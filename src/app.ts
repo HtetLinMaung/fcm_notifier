@@ -46,10 +46,9 @@ async function main() {
       if (key in schedules) {
         for (const scheduleJob of schedules[key]) {
           sendNotifiation(scheduleJob.body)
-            .then(() => {
-              onNotificationSent(key, timezone, scheduleJob._id);
-            })
+            .then(() => {})
             .catch((err) => log(err.message, "error"));
+          onNotificationSent(key, timezone, scheduleJob._id);
         }
       } else {
         const keys = Object.keys(schedules).filter((k) => k < key);
@@ -57,10 +56,9 @@ async function main() {
           for (const scheduleJob of schedules[key]) {
             log("send notification for late schedule");
             sendNotifiation(scheduleJob.body)
-              .then(() => {
-                onNotificationSent(key, timezone, scheduleJob._id);
-              })
+              .then(() => {})
               .catch((err) => log(err.message, "error"));
+            onNotificationSent(key, timezone, scheduleJob._id);
           }
         }
       }
